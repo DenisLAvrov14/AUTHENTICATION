@@ -1,51 +1,59 @@
-import { useState, useCallback, FormEvent, ChangeEvent } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../service/firebaseConfig';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { User } from '../../models/userTypes';
+import { Credentials, AuthError } from '../../models/userTypes';
+import { auth } from '../../service/firebaseConfig'; 
 
 const AuthForm = () => {
-    const [user, setUser] = useState<Pick<User, 'email' | 'password'>>({ email: '', password: '' });
-    const [isSignUp, setIsSignUp] = useState<boolean>(false);
-    const [error, setError] = useState<string>('');
-
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setUser(prev => ({ ...prev, [name]: value }));
-    };
+    const [credentials, setCredentials] = useState<Credentials>({ email: '', password: '' });
+    const [isSignUp, setIsSignUp] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     const handleLogin = useCallback(async () => {
         try {
-            await signInWithEmailAndPassword(auth, user.email, user.password);
-        } catch (error: any) {
-            console.error('Login error:', error);
+            await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
+            console.log("User logged in");
+            navigate('/users'); 
+        } catch (err) {
+            const error = err as AuthError;
+            console.error("Login error:", error.message);
             setError(error.message);
         }
-    }, [user.email, user.password]);
+    }, [credentials, navigate]);
 
     const handleRegister = useCallback(async () => {
         try {
-            await createUserWithEmailAndPassword(auth, user.email, user.password);
-        } catch (error: any) {
-            console.error('Registration error:', error);
+            const userCredential = await createUserWithEmailAndPassword(auth, credentials.email, credentials.password);
+            console.log("User registered", userCredential.user);
+            navigate('/users');
+        } catch (err) {
+            const error = err as AuthError;
+            console.error("Error registering:", error.message);
             setError(error.message);
         }
-    }, [user.email, user.password]);
+    }, [credentials, navigate]);
 
-    const handleAuth = async (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (isSignUp) {
-            await handleRegister();
+            handleRegister();
         } else {
-            await handleLogin();
+            handleLogin();
         }
+    };
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setCredentials(prev => ({ ...prev, [name]: value }));
     };
 
     return (
         <div className="container mt-5">
             <h2>{isSignUp ? 'Sign Up' : 'Login'}</h2>
             {error && <div className="alert alert-danger" role="alert">{error}</div>}
-            <form onSubmit={handleAuth} className="needs-validation" noValidate>
+            <form onSubmit={handleSubmit} noValidate>
                 <div className="mb-3">
                     <label htmlFor="email" className="form-label">Email</label>
                     <input
@@ -53,8 +61,8 @@ const AuthForm = () => {
                         className="form-control"
                         id="email"
                         name="email"
-                        value={user.email}
-                        onChange={handleInputChange}
+                        value={credentials.email}
+                        onChange={handleChange}
                         required
                     />
                 </div>
@@ -65,8 +73,8 @@ const AuthForm = () => {
                         className="form-control"
                         id="password"
                         name="password"
-                        value={user.password}
-                        onChange={handleInputChange}
+                        value={credentials.password}
+                        onChange={handleChange}
                         required
                     />
                 </div>

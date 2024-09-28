@@ -8,7 +8,9 @@ export interface User {
 
 export interface AuthError {
     message: string;
-}
+    code: string; 
+  }
+  
 
 export interface Credentials {
     email: string;

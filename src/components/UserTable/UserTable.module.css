@@ -1,0 +1,37 @@
+.outerContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+  }
+  
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+  }
+  
+
+.list-group {
+    width: 100%;
+    max-width: 600px; /* Ограничиваем ширину для лучшего визуального восприятия */
+    margin-bottom: 20px;
+}
+
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.btn {
+    margin-right: 10px;
+}
+
+.btn:last-child {
+    margin-right: 0;
+}
